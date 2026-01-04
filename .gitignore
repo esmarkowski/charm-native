@@ -1,0 +1,22 @@
+# Ruby gems
+*.gem
+/pkg/
+
+# Bundler
+/.bundle/
+/vendor/bundle/
+
+# Native extension build outputs
+/tmp/
+/lib/charm_native/*.bundle
+/lib/charm_native/*.so
+/lib/charm_native/*.dll
+/lib/charm_native/*.dylib
+
+# Go build outputs (platform-specific artifacts)
+/go/build/
+
+# OS/editor noise
+.DS_Store
+.vscode/
+.idea/
