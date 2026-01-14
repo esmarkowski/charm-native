@@ -30,7 +30,7 @@ This repo provides helper tasks to clone sibling repos and configure the appropr
 	# Use your GitHub username/owner that has the forks.
 	bundle exec rake workspace:setup OWNER=esmarkowski
 
-This will create sibling folders like `../bubbles-ruby`, `../bubbletea-ruby`, etc.
+This will create sibling folders like `../bubbles-ruby`, `../bubbletea-ruby`, `../lipgloss-ruby`, etc.
 
 3) Build and install charm-native locally:
 
