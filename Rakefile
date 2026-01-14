@@ -5,6 +5,65 @@ require "minitest/test_task"
 
 Minitest::TestTask.create
 
+namespace :workspace do
+  REPOS = %w[
+    bubbles-ruby
+    bubbletea-ruby
+    bubblezone-ruby
+    glamour-ruby
+    gum-ruby
+    harmonica-ruby
+    huh-ruby
+    lipgloss-ruby
+    ntcharts-ruby
+  ].freeze
+
+  LOCAL_GEMS = {
+    "bubbles" => "../bubbles-ruby",
+    "bubbletea" => "../bubbletea-ruby",
+    "bubblezone" => "../bubblezone-ruby",
+    "glamour" => "../glamour-ruby",
+    "gum" => "../gum-ruby",
+    "harmonica" => "../harmonica-ruby",
+    "huh" => "../huh-ruby",
+    "lipgloss" => "../lipgloss-ruby",
+    "ntcharts" => "../ntcharts-ruby",
+    "charm-native" => "../charm-native"
+  }.freeze
+
+  desc "Clone charm-ruby sibling repos next to charm-native (set OWNER=esmarkowski)"
+  task :clone do
+    owner = ENV.fetch("OWNER", "esmarkowski")
+    root = File.expand_path("..", __dir__)
+
+    REPOS.each do |repo|
+      target = File.join(root, repo)
+      next if Dir.exist?(target)
+
+      sh "git clone https://github.com/#{owner}/#{repo}.git #{target}"
+    end
+  end
+
+  desc "Configure Bundler local overrides in sibling repos (bundle config set local.* ../<repo>)"
+  task :bundle_local do
+    root = File.expand_path("..", __dir__)
+
+    REPOS.each do |repo_dir|
+      repo_path = File.join(root, repo_dir)
+      next unless File.exist?(File.join(repo_path, "Gemfile"))
+
+      Dir.chdir(repo_path) do
+        LOCAL_GEMS.each do |gem_name, relative_path|
+          sh "bundle config set local.#{gem_name} #{relative_path}"
+        end
+      end
+    end
+  end
+
+  desc "Clone repos and configure Bundler local overrides"
+  task setup: [:clone, :bundle_local]
+end
+
 begin
   require "rubocop/rake_task"
   RuboCop::RakeTask.new
