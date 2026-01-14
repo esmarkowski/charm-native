@@ -5,6 +5,62 @@ require "minitest/test_task"
 
 Minitest::TestTask.create
 
+namespace :workspace do
+  REPOS = {
+    "bubbles-ruby" => %w[bubbletea harmonica lipgloss charm-native],
+    "bubbletea-ruby" => %w[bubbles glamour harmonica lipgloss charm-native],
+    "glamour-ruby" => %w[charm-native],
+    "huh-ruby" => %w[bubbles bubbletea glamour harmonica lipgloss charm-native],
+    "lipgloss-ruby" => %w[charm-native]
+  }.freeze
+
+  desc "Clone charm-ruby sibling repos next to charm-native (set OWNER=esmarkowski)"
+  task :clone do
+    owner = ENV.fetch("OWNER", "esmarkowski")
+    root = File.expand_path("..", __dir__)
+
+    REPOS.keys.each do |repo|
+      target = File.join(root, repo)
+      next if Dir.exist?(target)
+
+      sh "git clone https://github.com/#{owner}/#{repo}.git #{target}"
+    end
+  end
+
+  desc "Configure Bundler local overrides in sibling repos (bundle config set local.* ../<repo>)"
+  task :bundle_local do
+    root = File.expand_path("..", __dir__)
+
+    REPOS.each do |repo_dir, gems|
+      repo_path = File.join(root, repo_dir)
+      next unless File.exist?(File.join(repo_path, "Gemfile"))
+
+      Dir.chdir(repo_path) do
+        gems.each do |gem_name|
+          relative_path = case gem_name
+                          when "bubbles" then "../bubbles-ruby"
+                          when "bubbletea" then "../bubbletea-ruby"
+                          when "glamour" then "../glamour-ruby"
+                          when "gum" then "../gum-ruby"
+                          when "harmonica" then "../harmonica-ruby"
+                          when "huh" then "../huh-ruby"
+                          when "lipgloss" then "../lipgloss-ruby"
+                          when "ntcharts" then "../ntcharts-ruby"
+                          when "charm-native" then "../charm-native"
+                          else
+                            abort "Unknown gem name for local override: #{gem_name}"
+                          end
+
+          sh "bundle config set local.#{gem_name} #{relative_path}"
+        end
+      end
+    end
+  end
+
+  desc "Clone repos and configure Bundler local overrides"
+  task setup: [:clone, :bundle_local]
+end
+
 begin
   require "rubocop/rake_task"
   RuboCop::RakeTask.new
